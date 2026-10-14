@@ -1,0 +1,56 @@
+name: Google Sheets QA/QC Ageing Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Runs daily at midnight
+  workflow_dispatch:      # Allows manual trigger button in GitHub
+
+jobs:
+  qaqc-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+
+      - name: Install R Packages
+        run: |
+          install.packages(c("googlesheets4", "FSA", "dplyr"), repos="https://cloud.r-project.org")
+        shell: Rscript {0}
+
+      - name: Calculate Precision Metrics
+        id: precision
+        env:
+          GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
+        run: Rscript .github/scripts/calculate_precision.R
+
+      - name: Update GitHub Issue with QA/QC Report
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pa0 = process.env.PA_0;
+            const pa1 = process.env.PA_1;
+            const ape = process.env.MEAN_APE;
+            const flagged = process.env.FLAGGED;
+            
+            const reportBody = `## 📊 Ageing Precision & QA/QC Summary\n` +
+              `* **Exact Percent Agreement:** ${pa0}%\n` +
+              `* **Agreement within ±1 Year:** ${pa1}%\n` +
+              `* **Mean APE (Average Percent Error):** ${ape}%\n` +
+              `* **Samples Needing Re-read (>1yr diff):** ${flagged}\n\n` +
+              `*Source Data: Connected via Google Sheets API*`;
+
+            // Post summary comment on main QA/QC Issue #1
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: 1,
+              body: reportBody
+            });
+        env:
+          PA_0: ${{ steps.precision.outputs.pa_0 }} PA_1:${{ steps.precision.outputs.pa_1 }}
+          MEAN_APE: ${{ steps.precision.outputs.mean_ape }}
+          FLAGGED: ${{ steps.precision.outputs.flagged_count }}
