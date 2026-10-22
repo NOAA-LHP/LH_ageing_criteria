@@ -6,8 +6,8 @@ library(dplyr)
 gs4_deauth()
 
 # Google Sheet URL or ID
-sheet_url <- Sys.getenv("https://docs.google.com/spreadsheets/d/15oEcqgalzCddTs9-5ccY0PuW5Qmxprd9d1R0osAH6Y0/edit?gid=2092189648#gid=2092189648")
-df <- read_sheet(sheet_url, sheet = "Ageing")
+sheet_url <-"https://docs.google.com/spreadsheets/d/15oEcqgalzCddTs9-5ccY0PuW5Qmxprd9d1R0osAH6Y0/edit?gid=2092189648#gid=2092189648"
+df <- read_sheet(sheet_url, sheet = "Ages")
 
 # Filter rows where both readers have entered an age estimate
 complete_reads <- df %>% filter(!is.na(Reader1_Age) & !is.na(Reader2_Age))
