@@ -8,8 +8,8 @@ library(lubridate)
 library(magrittr)
 #library(migg)
 
-###cread data
-data<-read.csv("~/Documents/github/LH_tech_memo/data/Age_PRZO_temp.csv")
+###update - in read data
+data<-read.csv("data/Age_PRZO_temp.csv")
 str(data)
 
 reader<- data %>% dplyr::select(PRZO_Kristen_age, PRZO_age_redone_1)
@@ -25,7 +25,7 @@ ab1 <- ageBias(PRZO_age_redone_1~PRZO_Kristen_age,data=reader)
 summary(ab1,what="table",flip.table=TRUE)
 summary(ab1,what="symmetry") #chi squared tests for significance (a significant test means that there are differences between the age readers)
 plotAB(ab1,show.n=TRUE)
-plot(ab1,show.CI=TRUE,show.range=FALSE,xHist=FALSE,yHist=FALSE)
+plot(ab1,show.CI=TRUE,show.range=FALSE,xHist=TRUE,yHist=TRUE)
 
 
 #plot otolith weight vs age - this is not always a linear releationship and there can be data errors such as including weights of broken otoliths etc
